@@ -1,53 +1,94 @@
-class Move
-  VALUES = ['rock', 'paper', 'scissors', 'lizard', 'Spock']
-  attr_reader :value
-
-  def initialize(value)
-    @value = value
-  end
-
+module Identifyable
   def scissors?
-    @value == 'scissors'
+    @value.class == Scissors
   end
 
   def rock?
-    @value == 'rock'
+    @value.class == Rock
   end
 
   def paper?
-    @value == 'paper'
+    @value.class == Paper
   end
 
   def lizard?
-    @value == 'lizard'
+    @value.class == Lizard
   end
 
   def spock?
-    @value == 'Spock'
+    @value.class == Spock
+  end
+end
+
+class Rock
+  include Identifyable
+  def wins?(other_move)
+    other_move.lizard? || other_move.scissors?
   end
 
-  def rock_wins?(other_move)
-    rock? && (other_move.lizard? || other_move.scissors?)
+  def to_s
+    'rock'
+  end
+end
+
+class Paper
+  include Identifyable
+  def wins?(other_move)
+    other_move.rock? || other_move.spock?
   end
 
-  def paper_wins?(other_move)
-    paper? && (other_move.rock? || other_move.spock?)
+  def to_s
+    'paper'
+  end
+end
+
+class Scissors
+  include Identifyable
+  def wins?(other_move)
+    other_move.paper? || other_move.lizard?
   end
 
-  def scissors_wins?(other_move)
-    scissors? && (other_move.paper? || other_move.lizard?)
+  def to_s
+    'scissors'
+  end
+end
+
+class Lizard
+  include Identifyable
+  def wins?(other_move)
+    other_move.paper? || other_move.spock?
   end
 
-  def lizard_wins?(other_move)
-    lizard? && (other_move.paper? || other_move.spock?)
+  def to_s
+    'lizard'
+  end
+end
+
+class Spock
+  include Identifyable
+  def wins?(other_move)
+    other_move.rock? || other_move.scissors?
   end
 
-  def spock_wins?(other_move)
-    spock? && (other_move.rock? || other_move.scissors?)
+  def to_s
+    'Spock'
+  end
+end
+
+class Move
+  VALUES = {'rock' => Rock.new,
+            'paper'  => Paper.new,
+            'scissors' => Scissors.new,
+            'lizard' => Lizard.new,
+            'Spock' => Spock.new}
+  attr_reader :value
+
+  def initialize(value)
+    @value = VALUES[value]
   end
 
   def >(other_move)
-    rock_wins?(other_move) || paper_wins?(other_move) || scissors_wins?(other_move) || lizard_wins?(other_move) || spock_wins?(other_move)
+    @value.wins?(other_move)
   end
 end
 
@@ -82,7 +123,7 @@ class Human < Player
     loop do
       puts "choose rock, paper, scissors, lizard or Spock"
       choice = gets.chomp
-      break if Move::VALUES.include?(choice)
+      break if Move::VALUES.keys.include?(choice)
       puts "sorry, invalid response, try again"
     end
     self.move = Move.new(choice)
@@ -96,7 +137,7 @@ class Computer < Player
   end
 
   def choose
-    self.move = Move.new(Move::VALUES.sample)
+    self.move = Move.new(Move::VALUES.keys.sample)
   end
 end
 

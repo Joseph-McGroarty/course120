@@ -76,11 +76,12 @@ class Spock
 end
 
 class Move
-  VALUES = {'rock' => Rock.new,
-            'paper'  => Paper.new,
-            'scissors' => Scissors.new,
-            'lizard' => Lizard.new,
-            'Spock' => Spock.new}
+  include Identifyable
+  VALUES = { 'rock' => Rock.new,
+             'paper' => Paper.new,
+             'scissors' => Scissors.new,
+             'lizard' => Lizard.new,
+             'Spock' => Spock.new }
   attr_reader :value
 
   def initialize(value)
@@ -141,12 +142,31 @@ class Computer < Player
   end
 end
 
+class History
+  attr_accessor :history
+  def initialize
+    @history = []
+  end
+
+  def record(hum_move, comp_move, winner)
+    @history << [hum_move, comp_move, winner]
+  end
+
+  def display(hname, cname)
+    puts "History of moves and wins is:"
+    @history.each_with_index do |round_rec, index|
+      puts "Round #{index + 1}: #{hname} chose #{round_rec[0]}, #{cname} chose #{round_rec[1]}, #{round_rec[2]} won."
+    end
+  end
+end
+
 class RPSGame
-  attr_accessor :human, :computer
+  attr_accessor :human, :computer, :history
 
   def initialize
     @human = Human.new
     @computer = Computer.new
+    @history = History.new
   end
 
   def display_welcome_message
@@ -172,12 +192,17 @@ class RPSGame
     end
   end
 
-  def record_match_win
+  def keep_score
     if human.move > computer.move
       human.score += 1
     elsif computer.move > human.move
       computer.score += 1
     end
+  end
+
+  def record_match_win
+    keep_score
+    history.record(human.move.value, computer.move.value, who_won_match)
   end
 
   def display_scores
@@ -210,6 +235,13 @@ class RPSGame
     display_moves
     display_winner
     display_scores
+    history.display(human.name, computer.name)
+  end
+
+  def who_won_match
+    return human.name if human.move > computer.move
+    return computer.name if computer.move > human.move
+    'nobody'
   end
 
   def play

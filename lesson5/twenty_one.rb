@@ -31,13 +31,13 @@ class Participant
     the_total
   end
 
-  def joiner(an_array, connector = ', ', joining_word = 'and')
-    case an_array.size
+  def joiner(arr, connector = ', ', join_word = 'and')
+    case arr.size
     when 0 then ''
-    when 1 then an_array.first
-    when 2 then an_array.join(" #{joining_word} ")
+    when 1 then arr.first
+    when 2 then arr.join(" #{join_word} ")
     else
-      an_array[0..(an_array.size - 2)].join(connector) + ", #{joining_word} " + an_array.last.to_s
+      arr[0..(arr.size - 2)].join(connector) + ", #{join_word} " + arr.last.to_s
     end
   end
 
@@ -56,13 +56,15 @@ class Human < Participant
   def hits_or_stays
     human_choice = nil
     loop do
-      puts "do you want to hit or stay?"
+      puts "do you want to hit or stay? (h or s)"
       human_choice = gets.chomp.downcase
-      break if human_choice == 'hit' || human_choice == 'stay'
+      break if human_choice == 'h' || human_choice == 's'
       puts "invalid choice, try again"
     end
-    @hits = true if human_choice == 'hit'
-    if human_choice == 'stay'
+    if human_choice == 'h'
+      @hits = true
+      @stays = false
+    elsif human_choice == 's'
       @hits = false
       @stays = true
     end
@@ -205,6 +207,7 @@ class TOGame
     end
   end
 
+  # rubocop:disable Metrics/AbcSize
   def dealer_turn
     loop do
       dealer.hits_or_stays
@@ -216,17 +219,26 @@ class TOGame
     end
     puts "#{dealer.name} stays." if dealer.stays?
   end
+  # rubocop:enable Metrics/AbcSize
 
   def display_result
     if human.busts?
-      human.show_hand
-      puts "#{human.name} busted, #{dealer.name} wins!"
+      announce_human_bust
     elsif dealer.busts?
-      dealer.show_hand
-      puts "#{dealer.name} busted, #{human.name} wins!"
+      announce_dealer_bust
     else
       compare_hands
     end
+  end
+
+  def announce_human_bust
+    human.show_hand
+    puts "#{human.name} busted, #{dealer.name} wins!"
+  end
+
+  def announce_dealer_bust
+    dealer.show_hand
+    puts "#{dealer.name} busted, #{human.name} wins!"
   end
 
   def compare_hands
